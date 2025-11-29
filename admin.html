@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Admin Panel</title>
+  <style>
+    body { font-family: Poppins, sans-serif; margin: 40px; background: #fafafa; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { border: 1px solid #ccc; padding: 10px; text-align: center; }
+    th { background: #007bff; color: white; }
+    form { display: inline; }
+    .btn { border: none; padding: 6px 10px; border-radius: 5px; color: white; cursor: pointer; }
+    .delete-btn { background: #dc3545; }
+    .status-btn { background: #007bff; margin: 2px; }
+    .logout { background: #555; padding: 8px 15px; color: white; border-radius: 6px; text-decoration: none; }
+    .status-confirmed { color: green; font-weight: bold; }
+    .status-cancelled { color: red; font-weight: bold; }
+    .status-checkedin { color: blue; font-weight: bold; }
+    .status-checkedout { color: gray; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h1>📋 All Bookings - {{ hotel.hotelName }}</h1>
+  <a href="/logout" class="logout">🚪 Logout</a>
+  <table>
+    <tr>
+      <th>ID</th><th>Name</th><th>Email</th><th>Phone</th>
+      <th>Room</th><th>Available</th><th>Guests</th><th>Total</th><th>Status</th><th>Actions</th>
+    </tr>
+    {% for b in bookings %}
+    <tr>
+      <td>{{ b[0] }}</td>
+      <td>{{ b[1] }}</td>
+      <td>{{ b[2] }}</td>
+      <td>{{ b[3] }}</td>
+      <td>{{ b[4] }}</td>
+      <td>
+        {% for r in hotel.listOfRooms %}
+          {% if r.roomType == b[4] %}
+            {{ r.roomQuantity }}
+          {% endif %}
+        {% endfor %}
+      </td>
+      <td>{{ b[5] }}</td>
+      <td>{{ b[6] }}</td>
+      <td>
+        {% if b[7] == "Confirmed" %}
+          <span class="status-confirmed">{{ b[7] }}</span>
+        {% elif b[7] == "Cancelled" %}
+          <span class="status-cancelled">{{ b[7] }}</span>
+        {% elif b[7] == "CheckedIn" %}
+          <span class="status-checkedin">{{ b[7] }}</span>
+        {% elif b[7] == "CheckedOut" %}
+          <span class="status-checkedout">{{ b[7] }}</span>
+        {% else %}
+          {{ b[7] }}
+        {% endif %}
+      </td>
+      <td>
+        <form method="POST" action="/update_status/{{ b[0] }}/Confirmed">
+          <button class="btn status-btn">✅ Confirm</button>
+        </form>
+        <form method="POST" action="/update_status/{{ b[0] }}/Cancelled">
+          <button class="btn status-btn">❌ Cancel</button>
+        </form>
+        <form method="POST" action="/update_status/{{ b[0] }}/CheckedIn">
+          <button class="btn status-btn">🏠 Check-In</button>
+        </form>
+        <form method="POST" action="/update_status/{{ b[0] }}/CheckedOut">
+          <button class="btn status-btn">🚪 Check-Out</button>
+        </form>
+        <form method="POST" action="/delete/{{ b[0] }}">
+          <button class="btn delete-btn">🗑 Delete</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+</body>
+</html>
