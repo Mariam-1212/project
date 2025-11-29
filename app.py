@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 from models import Room, Customer, Booking, Hotel, Employee
 from datetime import datetime, date
 import openpyxl, os
@@ -35,6 +35,59 @@ def home():
 @app.route('/about')
 def about():
     return render_template('about.html', hotel=hotel)
+
+# -------------------------------------
+# Booking Page
+# -------------------------------------
+@app.route('/book/<int:room_id>', methods=['GET','POST'])
+def book(room_id):
+    room = next((r for r in hotel.listOfRooms if r.roomNumber==room_id), None)
+    if not room:
+        return "Room not found",404
+
+    error=None
+    if request.method=='POST':
+        name=request.form['name'].strip()
+        email=request.form['email'].strip()
+        phone=request.form['phone'].strip()
+        guests_str=request.form['guests']
+        check_in_str=request.form['check_in']
+        check_out_str=request.form['check_out']
+
+        if not name or not email or not phone or not guests_str:
+            error="⚠️ Please fill in all fields."
+        else:
+            try:
+                guests=int(guests_str)
+                check_in=datetime.strptime(check_in_str,'%Y-%m-%d').date()
+                check_out=datetime.strptime(check_out_str,'%Y-%m-%d').date()
+
+                if guests>room.maxPeople:
+                    error=f"⚠️ {room.roomType} can host only {room.maxPeople} guest(s)."
+                elif check_in<date.today():
+                    error="⚠️ Check-in date cannot be in the past."
+                elif check_out<=check_in:
+                    error="⚠️ Check-out date must be after check-in date."
+                elif not room.checkAvailability():
+                    error=f"⚠️ Sorry, all {room.roomType}s are fully booked."
+                else:
+                    booking_id=datetime.now().strftime("%Y%m%d%H%M%S")
+                    customer=Customer(booking_id,name,email,phone)
+                    booking=Booking(booking_id,customer,room,datetime.combine(check_in,datetime.min.time()),datetime.combine(check_out,datetime.min.time()))
+                    total=booking.calculateTotalAmount()
+                    room.bookRoom()
+
+                    wb=openpyxl.load_workbook('data.xlsx')
+                    ws=wb.active
+                    ws.append([booking.bookingID,name,email,phone,room.roomType,guests,total,booking.bookingStatus])
+                    wb.save('data.xlsx')
+
+                    return render_template('success.html',name=name,total=total)
+            except ValueError:
+                error="⚠️ Invalid input. Please check your dates and number of guests."
+
+    return render_template('booking.html',room=room,hotel=hotel,error=error)
+
 
 if __name__=="__main__":
     app.run(debug=True)
