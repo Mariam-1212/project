@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect, url_for, session
 from models import Room, Customer, Booking, Hotel, Employee
 from datetime import datetime, date
 import openpyxl, os
@@ -37,56 +37,31 @@ def about():
     return render_template('about.html', hotel=hotel)
 
 # -------------------------------------
-# Booking Page
+# Admin Login
 # -------------------------------------
-@app.route('/book/<int:room_id>', methods=['GET','POST'])
-def book(room_id):
-    room = next((r for r in hotel.listOfRooms if r.roomNumber==room_id), None)
-    if not room:
-        return "Room not found",404
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    error = None
+    if request.method == 'POST':
+        username = request.form.get('username', '').strip()
+        password = request.form.get('password', '').strip()
 
-    error=None
-    if request.method=='POST':
-        name=request.form['name'].strip()
-        email=request.form['email'].strip()
-        phone=request.form['phone'].strip()
-        guests_str=request.form['guests']
-        check_in_str=request.form['check_in']
-        check_out_str=request.form['check_out']
-
-        if not name or not email or not phone or not guests_str:
-            error="⚠️ Please fill in all fields."
+        if not username or not password:
+            error = "⚠️ Please enter both username and password."
+        elif admin.login(username, password):
+            session['admin'] = True
+            return redirect(url_for('home'))
         else:
-            try:
-                guests=int(guests_str)
-                check_in=datetime.strptime(check_in_str,'%Y-%m-%d').date()
-                check_out=datetime.strptime(check_out_str,'%Y-%m-%d').date()
+            error = "❌ Wrong credentials! Try again."
+    return render_template('login.html', error=error)
 
-                if guests>room.maxPeople:
-                    error=f"⚠️ {room.roomType} can host only {room.maxPeople} guest(s)."
-                elif check_in<date.today():
-                    error="⚠️ Check-in date cannot be in the past."
-                elif check_out<=check_in:
-                    error="⚠️ Check-out date must be after check-in date."
-                elif not room.checkAvailability():
-                    error=f"⚠️ Sorry, all {room.roomType}s are fully booked."
-                else:
-                    booking_id=datetime.now().strftime("%Y%m%d%H%M%S")
-                    customer=Customer(booking_id,name,email,phone)
-                    booking=Booking(booking_id,customer,room,datetime.combine(check_in,datetime.min.time()),datetime.combine(check_out,datetime.min.time()))
-                    total=booking.calculateTotalAmount()
-                    room.bookRoom()
-
-                    wb=openpyxl.load_workbook('data.xlsx')
-                    ws=wb.active
-                    ws.append([booking.bookingID,name,email,phone,room.roomType,guests,total,booking.bookingStatus])
-                    wb.save('data.xlsx')
-
-                    return render_template('success.html',name=name,total=total)
-            except ValueError:
-                error="⚠️ Invalid input. Please check your dates and number of guests."
-
-    return render_template('booking.html',room=room,hotel=hotel,error=error)
+# -------------------------------------
+# Admin Logout
+# -------------------------------------
+@app.route('/logout')
+def logout():
+    session.pop('admin', None)
+    return redirect(url_for('home'))
 
 
 if __name__=="__main__":
