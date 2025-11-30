@@ -132,7 +132,7 @@ HotelBookingSystem/
     ├── login.html
     └── success.html
 
-⚡ Getting Started
+#  ⚡ Getting Started
 ▶️ Prerequisites
 
 Make sure you have:
@@ -143,7 +143,7 @@ pip (Python package manager)
 
 VS Code (recommended)
 
-📥 1. Clone the Repository
+# 📥 1. Clone the Repository
 git clone https://github.com/yourusername/HotelBookingSystem.git
 cd HotelBookingSystem
 
@@ -158,7 +158,7 @@ The system starts on:
 
 http://127.0.0.1:5000/
 
-🧪 Testing the App
+#  🧪 Testing the App
 🟦 User Side
 
 Visit Home Page → check rooms
@@ -169,7 +169,7 @@ Fill the form → confirm booking
 
 Receive booking success screen
 
-🟥 Admin Side
+#  🟥 Admin Side
 
 Go to /login
 
