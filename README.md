@@ -185,7 +185,7 @@ This project was collaboratively developed by:
 
 Ahmed Wael – Backend Developer
 
-Salma Khaled Salama - Frontend Developer
+Salma Khaled - Frontend Developer
 
 Mariam Mazin - Frontend Developer
 
