@@ -88,7 +88,6 @@ def book(room_id):
 
     return render_template('booking.html',room=room,hotel=hotel,error=error)
 
-
 # -------------------------------------
 # Admin Login
 # -------------------------------------
@@ -106,7 +105,6 @@ def login():
             return redirect(url_for('admin_panel'))
         else:
             error = "❌ Wrong credentials! Try again."
-
     return render_template('login.html', error=error)
 
 # -------------------------------------
@@ -118,19 +116,57 @@ def logout():
     return redirect(url_for('home'))
 
 # -------------------------------------
-# Admin Panel (Bookings Table)
+# Admin Panel
 # -------------------------------------
 @app.route('/admin')
 def admin_panel():
     if 'admin' not in session:
         return redirect(url_for('login'))
 
-    wb = openpyxl.load_workbook('data.xlsx')
-    ws = wb.active
-    bookings = [row for row in ws.iter_rows(min_row=2, values_only=True) if any(row)]
+    wb=openpyxl.load_workbook('data.xlsx')
+    ws=wb.active
+    bookings=[row for row in ws.iter_rows(min_row=2,values_only=True) if any(row)]
+    return render_template('admin.html',bookings=bookings,hotel=hotel)
 
-    return render_template('admin.html', bookings=bookings, hotel=hotel)
+# -------------------------------------
+# Update Status
+# -------------------------------------
+@app.route('/update_status/<booking_id>/<new_status>', methods=['POST'])
+def update_status(booking_id, new_status):
+    if 'admin' not in session:
+        return redirect(url_for('login'))
 
+    wb=openpyxl.load_workbook('data.xlsx')
+    ws=wb.active
 
-if __name__ == "__main__":
+    for row in range(2, ws.max_row + 1):
+        if str(ws.cell(row=row, column=1).value) == str(booking_id):
+            ws.cell(row=row, column=8).value = new_status
+            if new_status in ["Cancelled", "CheckedOut"]:
+                room_type = ws.cell(row=row, column=5).value
+                for r in hotel.listOfRooms:
+                    if r.roomType == room_type:
+                        r.releaseRoom()
+            wb.save('data.xlsx')
+            break
+    return redirect(url_for('admin_panel'))
+
+# -------------------------------------
+# Delete Booking
+# -------------------------------------
+@app.route('/delete/<booking_id>', methods=['POST'])
+def delete_booking(booking_id):
+    if 'admin' not in session:
+        return redirect(url_for('login'))
+
+    wb=openpyxl.load_workbook('data.xlsx')
+    ws=wb.active
+    for row in range(2, ws.max_row + 1):
+        if str(ws.cell(row=row, column=1).value) == str(booking_id):
+            ws.delete_rows(row)
+            wb.save('data.xlsx')
+            break
+    return redirect(url_for('admin_panel'))
+
+if __name__=="__main__":
     app.run(debug=True)
