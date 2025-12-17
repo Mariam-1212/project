@@ -1,32 +1,23 @@
-from flask import Flask, render_template, request, redirect, url_for, session
-from models import Room, Customer, Booking, Hotel, Employee
-from datetime import datetime, date
-import openpyxl, os
-import qrcode
-import base64
+from flask import Flask, render_template, request, redirect, session
+from models import Room, Customer, Booking as LogicBooking, Hotel, Employee
+from models_db import db, Booking
+from datetime import datetime
+import qrcode, base64
 from io import BytesIO
 
 app = Flask(__name__)
 app.secret_key = "hotel_secure_key"
 
+# ================= DATABASE =================
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///hotel.db"
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-# --------------------------------------------------------
-# Create Excel file if not exists
-# --------------------------------------------------------
-if not os.path.exists("data.xlsx"):
-    wb = openpyxl.Workbook()
-    ws = wb.active
-    ws.append([
-        "BookingID", "Name", "Email", "Phone",
-        "RoomType", "Guests", "CheckIn", "CheckOut",
-        "Total", "Status", "Rating"
-    ])
-    wb.save("data.xlsx")
+db.init_app(app)
 
+with app.app_context():
+    db.create_all()   # creates DB if not exists
 
-# --------------------------------------------------------
-# Hotel Setup
-# --------------------------------------------------------
+# ================= HOTEL SETUP =================
 hotel = Hotel("Nile View Hotel", "Cairo, Egypt", "+20 100 555 7777")
 
 hotel.addRoom(Room(1, "Single Room", 500, "Cozy single room", 1, 5))
@@ -35,10 +26,7 @@ hotel.addRoom(Room(3, "Deluxe Suite", 1500, "Nile view luxury suite", 4, 2))
 
 admin = Employee(1, "Admin", "Manager", "admin", "1234")
 
-
-# --------------------------------------------------------
-# Generate QR Code Invoice
-# --------------------------------------------------------
+# ================= QR GENERATOR =================
 def generate_qr(name, booking_id, room, total, ci, co):
     text = f"""
 Booking Invoice
@@ -50,36 +38,23 @@ Total: {total} EGP
 Check-in: {ci}
 Check-out: {co}
 """
-    qr = qrcode.QRCode(box_size=10, border=2)
-    qr.add_data(text)
-    qr.make(True)
+    img = qrcode.make(text)
+    buf = BytesIO()
+    img.save(buf, format="PNG")
+    return base64.b64encode(buf.getvalue()).decode()
 
-    img = qr.make_image(fill="black", back_color="white")
-    buffer = BytesIO()
-    img.save(buffer, format="PNG")
-    return base64.b64encode(buffer.getvalue()).decode()
-
-
-# --------------------------------------------------------
-# Home Page
-# --------------------------------------------------------
-@app.route('/')
+# ================= HOME =================
+@app.route("/")
 def home():
     return render_template("home.html", rooms=hotel.displayAvailableRooms(), hotel=hotel)
 
-
-# --------------------------------------------------------
-# About
-# --------------------------------------------------------
-@app.route('/about')
+# ================= ABOUT =================
+@app.route("/about")
 def about():
     return render_template("about.html", hotel=hotel)
 
-
-# --------------------------------------------------------
-# Booking Page
-# --------------------------------------------------------
-@app.route('/book/<int:id>', methods=["GET", "POST"])
+# ================= BOOKING =================
+@app.route("/book/<int:id>", methods=["GET", "POST"])
 def book(id):
     room = next((r for r in hotel.listOfRooms if r.roomNumber == id), None)
     if not room:
@@ -102,197 +77,142 @@ def book(id):
         if checkOut <= checkIn:
             return render_template("booking.html", room=room, error="Invalid date range.")
 
-        if not room.checkAvailability():
-            return render_template("booking.html", room=room, error="Room is fully booked!")
-
         booking_id = datetime.now().strftime("%Y%m%d%H%M%S")
-        customer = Customer(booking_id, name, email, phone)
-        booking = Booking(booking_id, customer, room, checkIn, checkOut)
-        total = booking.calculateTotalAmount()
 
+        logic = LogicBooking(
+            booking_id,
+            Customer(booking_id, name, email, phone),
+            room,
+            checkIn,
+            checkOut
+        )
+
+        total = logic.calculateTotalAmount()
         room.bookRoom()
 
-        wb = openpyxl.load_workbook("data.xlsx")
-        ws = wb.active
-        ws.append([booking_id, name, email, phone, room.roomType,
-                   guests, ci, co, total, "Pending Payment", None])
-        wb.save("data.xlsx")
+        new_booking = Booking(
+            booking_id=booking_id,
+            name=name,
+            email=email,
+            phone=phone,
+            room_type=room.roomType,
+            guests=guests,
+            check_in=checkIn,
+            check_out=checkOut,
+            total=total,
+            status="Pending Payment"
+        )
+
+        db.session.add(new_booking)
+        db.session.commit()
 
         return redirect(f"/payment/{booking_id}")
 
     return render_template("booking.html", room=room)
 
-
-# --------------------------------------------------------
-# Payment Page
-# --------------------------------------------------------
-@app.route('/payment/<booking_id>', methods=["GET", "POST"])
+# ================= PAYMENT =================
+@app.route("/payment/<booking_id>", methods=["GET", "POST"])
 def payment(booking_id):
-    wb = openpyxl.load_workbook("data.xlsx")
-    ws = wb.active
-
-    booking = None
-    for row in ws.iter_rows(min_row=2, values_only=True):
-        if str(row[0]) == booking_id:
-            booking = row
-            break
-
+    booking = Booking.query.filter_by(booking_id=booking_id).first()
     if not booking:
         return "Booking Not Found", 404
 
     if request.method == "POST":
-        # Update status to CONFIRMED after payment
-        for row in range(2, ws.max_row + 1):
-            if str(ws.cell(row=row, column=1).value) == booking_id:
-                ws.cell(row=row, column=10).value = "Confirmed"
-                wb.save("data.xlsx")
-                break
-
+        booking.status = "Confirmed"
+        db.session.commit()
         return redirect(f"/success/{booking_id}")
 
-    return render_template("payment.html", booking=booking)
+    return render_template("payment.html", booking=[
+        booking.booking_id,
+        booking.name,
+        booking.email,
+        booking.phone,
+        booking.room_type,
+        booking.guests,
+        booking.check_in,
+        booking.check_out,
+        booking.total
+    ])
 
-
-# --------------------------------------------------------
-# Success Page
-# --------------------------------------------------------
-@app.route('/success/<booking_id>')
+# ================= SUCCESS =================
+@app.route("/success/<booking_id>")
 def success_page(booking_id):
-    wb = openpyxl.load_workbook("data.xlsx")
-    ws = wb.active
+    b = Booking.query.filter_by(booking_id=booking_id).first()
 
-    booking = None
-    for row in ws.iter_rows(min_row=2, values_only=True):
-        if str(row[0]) == booking_id:
-            booking = row
-            break
+    qr = generate_qr(
+        b.name, b.booking_id, b.room_type,
+        b.total, b.check_in, b.check_out
+    )
 
-    name = booking[1]
-    room = booking[4]
-    total = booking[8]
-    ci = booking[6]
-    co = booking[7]
+    return render_template(
+        "success.html",
+        name=b.name,
+        booking_id=b.booking_id,
+        room=b.room_type,
+        total=b.total,
+        check_in=b.check_in,
+        check_out=b.check_out,
+        qr=qr
+    )
 
-    qr = generate_qr(name, booking_id, room, total, ci, co)
-
-    return render_template("success.html",
-                           name=name,
-                           booking_id=booking_id,
-                           room=room,
-                           total=total,
-                           check_in=ci,
-                           check_out=co,
-                           qr=qr)
-
-
-# --------------------------------------------------------
-# Rating Page
-# --------------------------------------------------------
-@app.route('/rate/<booking_id>', methods=["GET", "POST"])
+# ================= RATE =================
+@app.route("/rate/<booking_id>", methods=["GET", "POST"])
 def rate(booking_id):
+    b = Booking.query.filter_by(booking_id=booking_id).first()
+
     if request.method == "POST":
-        stars = int(request.form["stars"])
-
-        wb = openpyxl.load_workbook("data.xlsx")
-        ws = wb.active
-
-        for row in range(2, ws.max_row + 1):
-            if str(ws.cell(row=row, column=1).value) == booking_id:
-                ws.cell(row=row, column=11).value = stars
-                room_type = ws.cell(row=row, column=5).value
-                hotel.getRoomByType(room_type).addRating(stars)
-                wb.save("data.xlsx")
-                break
-
+        b.rating = int(request.form["stars"])
+        db.session.commit()
         return redirect("/")
 
     return render_template("rate.html", booking_id=booking_id)
 
-
-# --------------------------------------------------------
-# Admin Login
-# --------------------------------------------------------
-@app.route('/login', methods=["GET", "POST"])
+# ================= LOGIN =================
+@app.route("/login", methods=["GET", "POST"])
 def login():
     error = None
-
     if request.method == "POST":
-        u = request.form["username"]
-        p = request.form["password"]
-
-        if admin.login(u, p):
+        if admin.login(request.form["username"], request.form["password"]):
             session["admin"] = True
             return redirect("/admin")
         else:
             error = "Wrong username or password!"
-
     return render_template("login.html", error=error)
 
-
-# --------------------------------------------------------
-# Logout
-# --------------------------------------------------------
-@app.route('/logout')
+# ================= LOGOUT =================
+@app.route("/logout")
 def logout():
     session.pop("admin", None)
     return redirect("/")
 
-
-# --------------------------------------------------------
-# Admin Panel
-# --------------------------------------------------------
-@app.route('/admin')
+# ================= ADMIN =================
+@app.route("/admin")
 def admin_panel():
     if "admin" not in session:
         return redirect("/login")
 
-    wb = openpyxl.load_workbook("data.xlsx")
-    ws = wb.active
-
-    bookings = [row for row in ws.iter_rows(min_row=2, values_only=True)]
-
+    bookings = Booking.query.all()
     return render_template("admin.html", bookings=bookings, hotel=hotel)
 
-
-# --------------------------------------------------------
-# Update Booking Status
-# --------------------------------------------------------
-@app.route('/update_status/<booking_id>/<status>', methods=["POST"])
+# ================= UPDATE STATUS =================
+@app.route("/update_status/<booking_id>/<status>", methods=["POST"])
 def update_status(booking_id, status):
-    wb = openpyxl.load_workbook("data.xlsx")
-    ws = wb.active
-
-    for row in range(2, ws.max_row + 1):
-        if str(ws.cell(row=row, column=1).value) == booking_id:
-            ws.cell(row=row, column=10).value = status
-            wb.save("data.xlsx")
-            break
-
+    b = Booking.query.filter_by(booking_id=booking_id).first()
+    b.status = status
+    db.session.commit()
     return redirect("/admin")
 
-
-# --------------------------------------------------------
-# DELETE Booking
-# --------------------------------------------------------
-@app.route('/delete/<booking_id>', methods=["POST"])
+# ================= DELETE =================
+@app.route("/delete/<booking_id>", methods=["POST"])
 def delete_booking(booking_id):
     if "admin" not in session:
         return redirect("/login")
 
-    wb = openpyxl.load_workbook("data.xlsx")
-    ws = wb.active
-
-    for row in range(2, ws.max_row + 1):
-        if str(ws.cell(row=row, column=1).value) == booking_id:
-            ws.delete_rows(row)
-            wb.save("data.xlsx")
-            break
-
+    b = Booking.query.filter_by(booking_id=booking_id).first()
+    db.session.delete(b)
+    db.session.commit()
     return redirect("/admin")
 
-
-# --------------------------------------------------------
-# RUN APP
-# --------------------------------------------------------
+# ================= RUN =================
 if __name__ == "__main__":
     app.run(debug=True)

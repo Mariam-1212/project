@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <title>Payment</title>
+
+    <style>
+        :root {
+            --bg-dark: #111;
+            --card-dark: #1e1e1e;
+            --text-dark: #e5e5e5;
+
+            --bg-light: #eef2f3;
+            --card-light: white;
+            --text-light: black;
+
+            --accent: #0d6efd;
+        }
+
+        [data-theme="dark"] { --bg:#111; --card:#1e1e1e; --text:#e5e5e5; }
+        [data-theme="light"] { --bg:#eef2f3; --card:white; --text:black; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: Poppins;
+            text-align: center;
+            padding: 40px;
+            transition: 0.3s;
+        }
+
+        /* 🔥 Theme Button EXACT like Home */
+        .theme-btn {
+            position: fixed;
+            top: 16px;
+            right: 18px;
+            background: #ffffffdd;
+            border: none;
+            padding: 6px 9px;
+            border-radius: 50%;
+            font-size: 16px;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,.3);
+            z-index: 9999;
+        }
+
+        .payment-box {
+            width: 380px;
+            margin: auto;
+            background: var(--card);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,.4);
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 6px;
+            border: 1px solid #777;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background: var(--accent);
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+    </style>
+
+    <script>
+        const sv = localStorage.getItem("themeMode") || "dark";
+        document.documentElement.setAttribute("data-theme", sv);
+
+        function toggleTheme() {
+            let m = document.documentElement.getAttribute("data-theme");
+            let next = m === "dark" ? "light" : "dark";
+            document.documentElement.setAttribute("data-theme", next);
+            localStorage.setItem("themeMode", next);
+        }
+    </script>
+</head>
+
+<body>
+
+<!-- 🔥 Theme Button -->
+<button class="theme-btn" onclick="toggleTheme()">🌓</button>
+
+<h1>💳 Payment</h1>
+<p>Please enter your payment details to continue.</p>
+
+<div class="payment-box">
+    <h3>Booking ID: {{ booking[0] }}</h3>
+    <p><strong>Name:</strong> {{ booking[1] }}</p>
+    <p><strong>Room:</strong> {{ booking[4] }}</p>
+    <p><strong>Total:</strong> {{ booking[8] }} EGP</p>
+
+    <form method="POST">
+        <input type="text" placeholder="Card Number" required>
+        <input type="text" placeholder="Card Holder Name" required>
+        <input type="text" placeholder="MM/YY" required>
+        <input type="text" placeholder="CVV" required>
+
+        <button type="submit">Confirm Payment</button>
+    </form>
+</div>
+
+
+
+
+
+
+{% include "footer.html" %}
+
+
+</body>
+</html>
