@@ -1,17 +1,113 @@
 <!DOCTYPE html>
-<html>
+<html lang="en" data-theme="dark">
 <head>
-<title>Booking Success</title>
-<style>
-body{font-family:Poppins,sans-serif;text-align:center;background:#e0f7fa;padding:40px}
-h1{color:#00796b}
-a{text-decoration:none;color:white;background:#00796b;padding:10px 20px;border-radius:6px}
-</style>
+    <meta charset="UTF-8">
+    <title>Booking Success</title>
+
+    <style>
+        :root {
+            --bg-dark: #111; --card-dark: #1e1e1e; --text-dark: #e5e5e5;
+            --bg-light: #e3f2fd; --card-light: white; --text-light: black;
+            --accent: #0d6efd;
+        }
+
+        [data-theme="dark"] { --bg:#111; --card:#1e1e1e; --text:#e5e5e5; }
+        [data-theme="light"] { --bg:#e3f2fd; --card:white; --text:black; }
+
+        body {
+            font-family: Poppins;
+            background: var(--bg);
+            color: var(--text);
+            text-align: center;
+            padding: 40px;
+            transition: 0.3s;
+        }
+
+        /* 🔥 Theme Button EXACT like Home */
+        .theme-btn {
+            position: fixed;
+            top: 16px;
+            right: 18px;
+            background: #ffffffdd;
+            border: none;
+            padding: 6px 9px;
+            border-radius: 50%;
+            font-size: 16px;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,.3);
+            z-index: 9999;
+        }
+
+        .box {
+            width: 380px;
+            margin: auto;
+            background: var(--card);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,.4);
+        }
+
+        img {
+            width: 200px;
+            height: 200px;
+            margin: 10px 0;
+        }
+
+        .btn {
+            display: block;
+            margin-top: 15px;
+            background: var(--accent);
+            color: white;
+            padding: 10px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 16px;
+        }
+    </style>
+
+    <script>
+        const saved = localStorage.getItem("themeMode") || "dark";
+        document.documentElement.setAttribute("data-theme", saved);
+
+        function toggleTheme() {
+            let mode = document.documentElement.getAttribute("data-theme");
+            let next = mode === "dark" ? "light" : "dark";
+            document.documentElement.setAttribute("data-theme", next);
+            localStorage.setItem("themeMode", next);
+        }
+    </script>
 </head>
+
 <body>
-<h1>✅ Booking Successful!</h1>
-<p>Thank you {{ name }} for booking with us.</p>
-<p>Total amount: <strong>{{ total }} EGP</strong></p>
-<a href="/">Back to Home</a>
+
+<!-- 🔥 THEME BUTTON SAME AS HOME -->
+<button class="theme-btn" onclick="toggleTheme()">🌓</button>
+
+<h1>Thank you {{ name }}!</h1>
+
+<div class="box">
+
+    <p><strong>Booking ID:</strong> {{ booking_id }}</p>
+    <p><strong>Room:</strong> {{ room }}</p>
+    <p><strong>Total:</strong> {{ total }} EGP</p>
+    <p><strong>Check-in:</strong> {{ check_in }}</p>
+    <p><strong>Check-out:</strong> {{ check_out }}</p>
+
+    <h3>Your QR Invoice</h3>
+    <img src="data:image/png;base64,{{ qr }}">
+
+    <a class="btn" href="/rate/{{ booking_id }}">⭐ Rate Your Stay</a>
+    <a class="btn" href="/">🏠 Back to Home</a>
+
+</div>
+
+
+
+
+
+
+{% include "footer.html" %}
+
+
 </body>
 </html>

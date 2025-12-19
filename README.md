@@ -1,3 +1,5 @@
+#  to Run Project Download pip install flask openpyxl qrcode pillow
+
 # To Run The Program You shold Create Folder "Templates" and Put All files Html On it Then Run App.py 
 
 #   🏨 Nile View Hotel Booking System

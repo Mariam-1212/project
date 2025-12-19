@@ -1,23 +1,112 @@
 <!DOCTYPE html>
-<html>
+<html lang="en" data-theme="dark">
 <head>
+<meta charset="UTF-8">
 <title>Admin Login</title>
+
 <style>
-body{font-family:Poppins,sans-serif;background:#f0f0f0;text-align:center;padding:60px}
-form{background:white;display:inline-block;padding:40px;border-radius:12px;box-shadow:0 3px 8px rgba(0,0,0,.1)}
-input{width:250px;margin:10px;padding:10px;border:1px solid #ccc;border-radius:6px}
-button{background:#007bff;color:#fff;border:none;padding:10px 25px;border-radius:6px;cursor:pointer}
-button:hover{background:#0056b3}
-.error{color:red}
+    :root {
+        --bg-dark:#111; --card-dark:#1e1e1e; --text-dark:#e5e5e5;
+        --bg-light:#f0f0f0; --card-light:white; --text-light:black;
+        --accent:#0d6efd;
+    }
+
+    [data-theme="dark"] { --bg:#111; --card:#1e1e1e; --text:#e5e5e5; }
+    [data-theme="light"] { --bg:#f0f0f0; --card:white; --text:black; }
+
+    body {
+        background:var(--bg);
+        color:var(--text);
+        font-family:Poppins;
+        text-align:center;
+        padding:70px;
+        transition:0.3s;
+    }
+
+    /* 🔥 Theme Button EXACT like Home */
+    .theme-btn {
+        position: fixed;
+        top: 16px;
+        right: 18px;
+        background: #ffffffdd;
+        border: none;
+        padding: 6px 9px;
+        border-radius: 50%;
+        font-size: 16px;
+        cursor: pointer;
+        box-shadow: 0 2px 5px rgba(0,0,0,.3);
+        z-index: 9999;
+    }
+
+    form {
+        background:var(--card);
+        width:350px;
+        margin:auto;
+        padding:40px;
+        border-radius:12px;
+        box-shadow:0 3px 8px rgba(0,0,0,.3);
+    }
+
+    input {
+        width:90%;
+        padding:10px;
+        margin:10px 0;
+        border-radius:6px;
+        border:1px solid #777;
+        background:var(--bg);
+        color:var(--text);
+    }
+
+    button {
+        width:90%;
+        padding:10px;
+        background:var(--accent);
+        color:white;
+        border-radius:6px;
+        cursor:pointer;
+        font-size:16px;
+    }
+
+    .error { 
+        color:#ff3333; 
+        font-weight:bold; 
+    }
 </style>
+
+<script>
+    const saved = localStorage.getItem("themeMode") || "dark";
+    document.documentElement.setAttribute("data-theme", saved);
+
+    function toggleTheme() {
+        let m = document.documentElement.getAttribute("data-theme");
+        let next = m === "dark" ? "light" : "dark";
+        document.documentElement.setAttribute("data-theme", next);
+        localStorage.setItem("themeMode", next);
+    }
+</script>
 </head>
+
 <body>
+
+<!-- 🔥 THEME BUTTON SAME AS HOME -->
+<button class="theme-btn" onclick="toggleTheme()">🌓</button>
+
 <h1>🔐 Admin Login</h1>
-{% if error %}<p class="error">{{ error }}</p>{% endif %}
+
+{% if error %}
+<p class="error">{{ error }}</p>
+{% endif %}
+
 <form method="POST">
-<input type="text" name="username" placeholder="Username" required><br>
-<input type="password" name="password" placeholder="Password" required><br>
-<button type="submit">Login</button>
+    <input type="text" name="username" placeholder="Username" required><br>
+    <input type="password" name="password" placeholder="Password" required><br>
+    <button type="submit">Login</button>
 </form>
+
+
+
+{% include "footer.html" %}
+
+
 </body>
 </html>
