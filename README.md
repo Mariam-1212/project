@@ -1,7 +1,5 @@
 #  to Run Project Download pip install flask openpyxl qrcode pillow
 
-# To Run The Program You shold Create Folder "Templates" and Put All files Html On it Then Run App.py 
-
 #   🏨 Nile View Hotel Booking System
 
 A clean, modern, full-stack web application that allows users to explore rooms, make reservations, manage bookings, and provides an admin dashboard with full control over hotel operations.
