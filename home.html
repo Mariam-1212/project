@@ -1,38 +1,204 @@
 <!DOCTYPE html>
-<html>
+<html lang="en" data-theme="dark">
 <head>
-<title>{{ hotel.hotelName }}</title>
-<style>
-body{font-family:Poppins,sans-serif;background:#eef2f3;margin:0;padding:0}
-header{background:#007bff;color:white;padding:20px;text-align:center}
-.container{display:flex;flex-wrap:wrap;justify-content:center;margin:30px}
-.room{background:white;width:300px;margin:15px;padding:20px;border-radius:12px;box-shadow:0 3px 8px rgba(0,0,0,.1)}
-.room h3{color:#007bff}
-.btn{text-decoration:none;background:#007bff;color:white;padding:8px 14px;border-radius:6px;transition:.3s}
-.btn:hover{background:#0056b3}
-</style>
+    <meta charset="UTF-8">
+    <title>{{ hotel.hotelName }}</title>
+
+    <style>
+        :root {
+            --bg-dark: #111;
+            --card-dark: #1e1e1e;
+            --text-dark: #e5e5e5;
+
+            --bg-light: #eef2f3;
+            --card-light: #ffffff;
+            --text-light: #000;
+
+            --accent: #0d6efd;
+        }
+
+        [data-theme="dark"] {
+            --bg: var(--bg-dark);
+            --card: var(--card-dark);
+            --text: var(--text-dark);
+        }
+
+        [data-theme="light"] {
+            --bg: var(--bg-light);
+            --card: var(--card-light);
+            --text: var(--text-light);
+        }
+
+        body {
+            margin: 0;
+            font-family: Poppins, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            transition: 0.3s;
+        }
+
+        /* ---------- HEADER ---------- */
+        header {
+            background: var(--accent);
+            color: white;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-left h1 {
+            margin: 0;
+            font-size: 26px;
+        }
+
+        .header-left p {
+            margin: 5px 0 0;
+            font-size: 14px;
+        }
+
+        .header-right .btn {
+            margin-left: 10px;
+        }
+
+        /* ---------- THEME BUTTON ---------- */
+        .theme-btn {
+            position: fixed;
+            top: 16px;
+            right: 18px;
+            background: #ffffffdd;
+            border: none;
+            padding: 6px 9px;
+            border-radius: 50%;
+            font-size: 16px;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,.3);
+            z-index: 9999;
+        }
+
+        /* ---------- ROOMS ---------- */
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            padding: 30px;
+        }
+
+        .room {
+            width: 300px;
+            background: var(--card);
+            padding: 20px;
+            border-radius: 14px;
+            margin: 15px;
+            text-align: center;
+            box-shadow: 0 3px 8px rgba(0,0,0,.3);
+            transition: 0.3s;
+        }
+
+        .room:hover {
+            transform: scale(1.03);
+        }
+
+        .room img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .btn {
+            text-decoration: none;
+            background: var(--accent);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            display: inline-block;
+            margin-top: 10px;
+        }
+
+        .stars {
+            color: gold;
+            font-size: 17px;
+        }
+    </style>
+
+    <script>
+        const savedTheme = localStorage.getItem("themeMode") || "dark";
+        document.documentElement.setAttribute("data-theme", savedTheme);
+
+        function toggleTheme() {
+            let mode = document.documentElement.getAttribute("data-theme");
+            let next = mode === "dark" ? "light" : "dark";
+            document.documentElement.setAttribute("data-theme", next);
+            localStorage.setItem("themeMode", next);
+        }
+    </script>
 </head>
+
 <body>
+
+<!-- 🌗 Theme Button -->
+<button class="theme-btn" onclick="toggleTheme()">🌓</button>
+
+<!-- 🏨 HEADER -->
 <header>
-  <h1>🏨 {{ hotel.hotelName }}</h1>
-  <p>{{ hotel.address }} | 📞 {{ hotel.contactNumber }}</p>
-  <a class="btn" href="/about">About Us</a>
-  <a class="btn" href="/login">Admin Login</a>
+    <div class="header-left">
+        <h1>🏨 Nile View Hotel</h1>
+        <p>Cairo, Egypt — 📞 +20 100 555 7777</p>
+    </div>
+    <div class="header-right">
+        <a class="btn" href="/about">About</a>
+        <a class="btn" href="/login">Admin Login</a>
+    </div>
 </header>
+
+<!-- 🛏 ROOMS -->
 <div class="container">
-  {% for room in rooms %}
-  <div class="room">
-    <h3>{{ room.roomType }}</h3>
+
+{% for room in rooms %}
+<div class="room">
+
+    <!-- 🖼 ROOM IMAGE -->
+    <img
+        src="{% if room.roomType == 'Single Room' %}
+                {{ url_for('static', filename='images/Single.jpg') }}
+             {% elif room.roomType == 'Double Room' %}
+                {{ url_for('static', filename='images/double.jpg') }}
+             {% else %}
+                {{ url_for('static', filename='images/deluxe.jpg') }}
+             {% endif %}"
+        alt="{{ room.roomType }}"
+    >
+
+    <h2>{{ room.roomType }}</h2>
     <p>{{ room.description }}</p>
-    <p><strong>{{ room.pricePerNight }} EGP/night</strong></p>
-    <p>Available: <strong>{{ room.roomQuantity }}</strong></p>
-    {% if room.roomQuantity > 0 %}
-      <a href="/book/{{ room.roomNumber }}" class="btn">Book Now</a>
+    <p><strong>{{ room.pricePerNight }} EGP / night</strong></p>
+    <p>Available: {{ room.roomQuantity }}</p>
+
+    {% set avg = room.getAverageRating() or 0 %}
+    {% if avg > 0 %}
+        {% set stars = avg|float|round(0,'floor')|int %}
+        <p class="stars">
+            {% for i in range(stars) %}⭐{% endfor %}
+        </p>
+        <p>({{ avg }})</p>
     {% else %}
-      <p style="color:red">Fully Booked</p>
+        <p style="color:#777;">No ratings yet</p>
     {% endif %}
-  </div>
-  {% endfor %}
+
+    {% if room.roomQuantity > 0 %}
+        <a href="/book/{{ room.roomNumber }}" class="btn">Book Now</a>
+    {% else %}
+        <p style="color:red;">Fully Booked</p>
+    {% endif %}
+
 </div>
+{% endfor %}
+
+</div>
+
+{% include "footer.html" %}
+
 </body>
 </html>
