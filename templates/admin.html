@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<title>Admin Panel</title>
+
+<style>
+    :root {
+        --bg-dark:#111; --card-dark:#1e1e1e; --text-dark:#e5e5e5;
+        --bg-light:#fafafa; --card-light:#ffffff; --text-light:#000;
+        --accent:#0d6efd;
+    }
+
+    [data-theme="dark"] { --bg:#111; --card:#1e1e1e; --text:#e5e5e5; }
+    [data-theme="light"] { --bg:#fafafa; --card:white; --text:black; }
+
+    body {
+        background:var(--bg);
+        color:var(--text);
+        font-family:Poppins, sans-serif;
+        padding:40px;
+    }
+
+    .theme-btn {
+        position: fixed;
+        top: 16px;
+        right: 18px;
+        background: #ffffffdd;
+        border: none;
+        padding: 6px 9px;
+        border-radius: 50%;
+        cursor: pointer;
+        box-shadow: 0 2px 5px rgba(0,0,0,.3);
+        z-index: 9999;
+    }
+
+    a.logout {
+        position: fixed;
+        left: 15px;
+        top: 15px;
+        padding: 6px 12px;
+        background: #444;
+        color: white;
+        border-radius: 6px;
+        text-decoration: none;
+    }
+
+    table {
+        width:100%;
+        border-collapse:collapse;
+        background:var(--card);
+        box-shadow:0 0 10px rgba(0,0,0,.4);
+    }
+
+    th {
+        background:var(--accent);
+        padding:10px;
+        color:white;
+    }
+
+    td {
+        padding:10px;
+        border-bottom:1px solid #333;
+        text-align:center;
+    }
+
+    .btn {
+        padding:6px 10px;
+        border-radius:6px;
+        border:none;
+        color:white;
+        cursor:pointer;
+        margin:2px 0;
+        display:block;
+    }
+
+    .status-btn { background:#0d6efd; }
+    .delete-btn { background:#dc3545; }
+</style>
+
+<script>
+    const saved = localStorage.getItem("themeMode") || "dark";
+    document.documentElement.setAttribute("data-theme", saved);
+    function toggleTheme(){
+        let m = document.documentElement.getAttribute("data-theme");
+        let n = m === "dark" ? "light" : "dark";
+        document.documentElement.setAttribute("data-theme", n);
+        localStorage.setItem("themeMode", n);
+    }
+</script>
+</head>
+
+<body>
+
+<button class="theme-btn" onclick="toggleTheme()">🌓</button>
+<a class="logout" href="/logout">Logout</a>
+
+<h1>📋 Bookings — {{ hotel.hotelName }}</h1>
+
+<table>
+<tr>
+    <th>ID</th><th>Name</th><th>Email</th><th>Phone</th>
+    <th>Room</th><th>Guests</th>
+    <th>Check-in</th><th>Check-out</th>
+    <th>Total</th><th>Status</th><th>Rating</th><th>Actions</th>
+</tr>
+
+{% for b in bookings %}
+<tr>
+    <td>{{ b.booking_id }}</td>
+    <td>{{ b.name }}</td>
+    <td>{{ b.email }}</td>
+    <td>{{ b.phone }}</td>
+    <td>{{ b.room_type }}</td>
+    <td>{{ b.guests }}</td>
+    <td>{{ b.check_in }}</td>
+    <td>{{ b.check_out }}</td>
+    <td>{{ b.total }} EGP</td>
+    <td>{{ b.status }}</td>
+
+    <td>
+        {% if b.rating %}
+            {% for i in range(b.rating) %}⭐{% endfor %}
+        {% else %}
+            <span style="color:#777;">No Rating</span>
+        {% endif %}
+    </td>
+
+    <td>
+        <form method="POST" action="/update_status/{{ b.booking_id }}/Confirmed">
+            <button class="btn status-btn">Confirm</button>
+        </form>
+
+        <form method="POST" action="/update_status/{{ b.booking_id }}/Cancelled">
+            <button class="btn status-btn">Cancel</button>
+        </form>
+
+        <form method="POST" action="/update_status/{{ b.booking_id }}/CheckedIn">
+            <button class="btn status-btn">Check-In</button>
+        </form>
+
+        <form method="POST" action="/update_status/{{ b.booking_id }}/CheckedOut">
+            <button class="btn status-btn">Check-Out</button>
+        </form>
+
+        <form method="POST" action="/delete/{{ b.booking_id }}">
+            <button class="btn delete-btn">Delete</button>
+        </form>
+    </td>
+</tr>
+{% endfor %}
+</table>
+
+{% include "footer.html" %}
+
+</body>
+</html>

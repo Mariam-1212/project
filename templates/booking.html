@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <title>Book {{ room.roomType }}</title>
+
+    <style>
+        :root {
+            --bg-dark: #111;
+            --card-dark: #1e1e1e;
+            --text-dark: #e5e5e5;
+
+            --bg-light: #f0f0f0;
+            --card-light: white;
+            --text-light: black;
+
+            --accent: #0d6efd;
+        }
+
+        [data-theme="dark"] { 
+            --bg: var(--bg-dark); 
+            --card: var(--card-dark); 
+            --text: var(--text-dark); 
+        }
+
+        [data-theme="light"] { 
+            --bg: var(--bg-light); 
+            --card: var(--card-light); 
+            --text: var(--text-light); 
+        }
+
+        body { 
+            background: var(--bg); 
+            color: var(--text); 
+            font-family: Poppins; 
+            text-align: center; 
+            padding: 40px; 
+        }
+
+        
+        .theme-btn {
+            position: fixed;
+            top: 16px;
+            right: 18px;
+            background: #ffffffdd;
+            border: none;
+            padding: 6px 9px;
+            border-radius: 50%;
+            font-size: 16px;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,.3);
+            z-index: 9999;
+        }
+
+        form {
+            background: var(--card);
+            width: 350px;
+            padding: 25px;
+            border-radius: 12px;
+            margin: auto;
+            box-shadow: 0 3px 8px rgba(0,0,0,.3);
+            text-align: left;
+        }
+
+        input { 
+            width: 100%; 
+            padding: 8px; 
+            margin: 6px 0 12px; 
+            border-radius: 6px; 
+            border: 1px solid #aaa;
+        }
+
+        button { 
+            width: 100%; 
+            padding: 10px; 
+            background: var(--accent); 
+            color: white; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            font-size: 16px;
+        }
+
+        .error { 
+            color: #ff4444; 
+            font-weight: bold; 
+            text-align: center; 
+        }
+    </style>
+
+    <script>
+        const saved = localStorage.getItem("themeMode") || "dark";
+        document.documentElement.setAttribute("data-theme", saved);
+
+        function toggleTheme() {
+            let mode = document.documentElement.getAttribute("data-theme");
+            let next = mode === "dark" ? "light" : "dark";
+            document.documentElement.setAttribute("data-theme", next);
+            localStorage.setItem("themeMode", next);
+        }
+    </script>
+</head>
+
+<body>
+
+
+<button class="theme-btn" onclick="toggleTheme()">🌓</button>
+
+<h1>Book {{ room.roomType }}</h1>
+
+{% if error %}
+<p class="error">{{ error }}</p>
+{% endif %}
+
+<form method="POST">
+    <label>Name:</label>
+    <input type="text" name="name" required>
+
+    <label>Email:</label>
+    <input type="email" name="email" required>
+
+    <label>Phone:</label>
+    <input type="text" name="phone" required>
+
+    <label>Guests:</label>
+    <input type="number" name="guests" min="1" max="{{ room.maxPeople }}" required>
+
+    <label>Check-in:</label>
+    <input type="date" name="check_in" required>
+
+    <label>Check-out:</label>
+    <input type="date" name="check_out" required>
+
+    <button type="submit">Continue to Payment</button>
+</form>
+
+
+
+
+
+{% include "footer.html" %}
+
+
+
+</body>
+</html>
