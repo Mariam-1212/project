@@ -1,198 +1,175 @@
-#  to Run Project Download pip install flask openpyxl qrcode pillow
+#    🏨 Nile View Hotel Booking System
+ A modern, full-stack hotel booking web application built with Flask that allows users to explore rooms, make reservations, complete payments, rate their stay, and enables          administrators to fully manage bookings through a secured dashboard.
+ The project demonstrates real-world backend concepts, including authentication, database persistence, automated testing, CI pipelines, and deployment readiness.
 
-#   🏨 Nile View Hotel Booking System
+#   🚀 Features
+ 🛏️ Room Browsing & Availability
+ * View all room types (Single, Double, Deluxe Suite)
+ * Room description, price, and real-time availability
+ * Availability updates automatically after booking, cancellation, or check-out
 
-A clean, modern, full-stack web application that allows users to explore rooms, make reservations, manage bookings, and provides an admin dashboard with full control over hotel operations.
-The system demonstrates solid separation of concerns, combining a Flask backend, a dynamic HTML/CSS frontend, and a data persistence layer using Excel (openpyxl).
+#    📅 Booking System
+  * Complete booking workflow with validation:
+      * Guest details
+      * Check-in / Check-out dates
+      * Number of guests
+  * Capacity validation per room
+  * Automatic total price calculation based on stay duration
 
-#  🚀 Features
-🛏️ Room Browsing & Availability
+#   💳 Payment Flow
+ * Dedicated payment confirmation page
+ * Booking status updated only after successful payment
+ * Prevents unpaid bookings from being confirmed
 
-Users can view all available room types (Single, Double, Deluxe Suite).
+#  ⭐ Rating System
+ * Guests can rate their stay (1–5 stars) after booking
+ * Ratings are stored persistently in the database
+ * Average room rating displayed on the home page
 
-Each room shows description, price, and current availability.
+#    📦 Data Persistence (Database)
+   * Uses SQLite + SQLAlchemy
+   * Database is automatically created if it does not exist
+   * All bookings are stored persistently and survive server restarts
+   Stored data includes:
+   * Booking ID
+   * Customer details
+   * Room type
+   * Guests
+   * Check-in / Check-out
+   * Total price
+   * Status
+   * Rating
 
-Real-time updates as bookings are made or cancelled.
+#    🔐 Admin Authentication
+  * Secure admin login page
+  * Session-based authentication
+  * Unauthorized users cannot access admin routes
 
-#   📅 Booking System
+#     🛠️ Admin Dashboard
+   * View all bookings in a single dashboard
+   * Update booking status:
+      * ✔ Confirm
+      * ❌ Cancel
+      * 🏠 Check-In
+      * 🚪 Check-Out
+  * Delete bookings
+  * Ratings displayed per booking
 
-Full booking flow with validation:
+#    🧾 QR Code Invoice
+   * Automatic QR code generated after booking success
+   * QR contains:
+      * Guest name
+      * Booking ID
+      * Room type
+      * Total amount
+      * Check-in / Check-out dates
 
-Guest details
+#    🎨 UI & UX
+   * Clean and modern UI
+   * Dark / Light mode toggle (persisted across pages)
+   * Consistent layout across all templates
+   * Responsive design
 
-Check-in & check-out dates
-
-Number of guests
-
-Automatic availability checking based on room capacity.
-
-Total price calculation based on duration of stay.
-
-#   📂 Reservation Storage (Excel)
-
-All bookings are automatically saved into an Excel file (data.xlsx).
-
-Each booking entry includes:
-
-Booking ID
-
-Customer info
-
-Room type
-
-Guests
-
-Total amount
-
-Status (Confirmed / Cancelled / CheckedIn / CheckedOut)
-
-#  🔐 Admin Authentication
-
-Dedicated admin login page.
-
-Username/password validation handled via backend.
-
-Secured session-based admin access.
-
-#  🛠️ Admin Dashboard
-
-View all bookings with full details.
-
-Update booking status:
-
-✔ Confirm
-
-❌ Cancel
-
-🏠 Check-In
-
-🚪 Check-Out
-
-Delete bookings.
-
-Automatic update of available rooms after cancellations or check-outs.
-
-#  🎨 Clean Frontend UI
-
-Fully responsive pages using HTML5/CSS3.
-
-Consistent styling with a modern look.
-
-Includes:
-
-Home page
-
-About page
-
-Booking page
-
-Admin panel
-
-Login page
-
-Success page
+#   🧪 Testing & CI
+  * Automated tests written using pytest
+  * Flask test client for route testing
+  * GitHub Actions pipeline:
+      * Runs tests on every push
+      * Blocks merge if tests fail
 
 #  🛠️ Technology Stack
 Frontend
-
-HTML5
-
-CSS3
-
-Responsive Design
-
-Jinja2 Templating (Flask built-in)
-
+* HTML5
+* CSS3
+* Responsive Design
+* Jinja2 Templating
 Backend
+* Python 3.10+
+* Flask
+* Session handling
+* Routing & validation
+Database
+* SQLite
+* SQLAlchemy ORM
+Utilities
+* QR Code generation (qrcode, Pillow)
+* Automated testing (pytest)
+* CI/CD (GitHub Actions)
 
-Python 3
-
-Flask Web Framework
-
-Session handling
-
-Routing, templating, validation
-
-Database Layer
-
-openpyxl for Excel-based data storage
-
-Excel acts as a lightweight structured database
-
-#   📂 Project Structure
+#  📂 Project Structure
 HotelBookingSystem/
 │
-├── app.py               # Main Flask backend
-├── models.py            # Classes: Hotel, Room, Booking, Customer, Employee
-├── data.xlsx            # Automatically created reservation database
+├── app.py                  # Main Flask application
+├── models.py               # Business logic models
+├── models_db.py            # Database models (SQLAlchemy)
+├── hotel.db                # SQLite database (auto-created)
 │
-└── templates/           # HTML Files
-    ├── home.html
-    ├── about.html
-    ├── booking.html
-    ├── admin.html
-    ├── login.html
-    └── success.html
+├── static/
+│   └── images/             # Room images
+│
+├── templates/
+│   ├── home.html
+│   ├── about.html
+│   ├── booking.html
+│   ├── payment.html
+│   ├── success.html
+│   ├── rate.html
+│   ├── admin.html
+│   ├── login.html
+│   └── footer.html
+│
+├── tests/
+│   └── test_app.py         # Automated tests
+│
+└── .github/workflows/
+    └── python-app.yml      # CI pipeline
 
-#  ⚡ Getting Started
+# ⚡ Getting Started
 ▶️ Prerequisites
-
-Make sure you have:
-
-Python 3.10+
-
-pip (Python package manager)
-
-VS Code (recommended)
+* Python 3.10+
+* pip
+* Virtual environment (recommended)
 
 # 📥 1. Clone the Repository
 git clone https://github.com/yourusername/HotelBookingSystem.git
 cd HotelBookingSystem
 
-📦 2. Install Dependencies
-pip install flask openpyxl
+# 📦 2. Install Dependencies
+pip install flask flask-sqlalchemy qrcode pillow pytest
 
-🗄️ 3. Run the Application
+# 🗄️ 3. Run the Application
 python app.py
-
-
-The system starts on:
-
+The application will start at:
 http://127.0.0.1:5000/
+The database will be created automatically if it does not exist.
 
-#  🧪 Testing the App
-🟦 User Side
+#🧪 Running Tests
+pytest -v
 
-Visit Home Page → check rooms
+# 🟦 User Flow
+1. Visit Home Page
+2. Browse rooms
+3. Book a room
+4. Complete payment
+5. View QR invoice
+6. Rate your stay
 
-Click Book Now
+# 🟥 Admin Flow
+1. Go to /login
+2. Enter admin credentials
+3. Access admin dashboard
+4. Manage bookings and statuses
 
-Fill the form → confirm booking
+# 🚧 Current Status
+* Core features completed
+* CI pipeline active
+* Deployment preparation in progress
 
-Receive booking success screen
+# 👥 Team Members
+* Ahmed Wael – Backend Developer
+* Salma Khaled – Frontend Developer
+* Mariam Mazin – Frontend Developer
+* Maryam Aly – Frontend Developer
 
-#  🟥 Admin Side
-
-Go to /login
-
-Enter admin username + password
-
-Access dashboard
-
-View, update, delete bookings
-
-#   👥 Team Members
-
-This project was collaboratively developed by:
-
-Ahmed Wael – Backend Developer
-
-Salma Khaled - Frontend Developer
-
-Mariam Mazin - Frontend Developer
-
-Maryam Aly - Frontend Developer
-
-#   📄 License
-
+# 📄 License
 This project is licensed under the MIT License.
