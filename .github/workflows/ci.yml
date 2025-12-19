@@ -1,0 +1,39 @@
+name: Flask CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  flask-ci:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install flask flask_sqlalchemy qrcode pillow flake8
+
+    - name: Lint code
+      run: |
+        flake8 . \
+          --exclude=__pycache__,.git,.github \
+          --max-line-length=120
+
+    - name: Basic Flask import test
+      run: |
+        python - <<EOF
+        import app
+        assert app.app is not None
+        print("Flask app loaded successfully")
+        EOF
