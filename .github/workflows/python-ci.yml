@@ -7,23 +7,21 @@ on:
     branches: [ main ]
 
 jobs:
-  check-syntax:
+  test:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
+    - uses: actions/checkout@v3
 
-    - name: Set up Python 3.11
-      uses: actions/setup-python@v4
+    - uses: actions/setup-python@v4
       with:
         python-version: 3.11
 
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install flask qrcode pillow
+        pip install flask qrcode pillow pytest
 
-    - name: Check Python syntax
+    - name: Run tests
       run: |
-        find . -name "*.py" -exec python -m py_compile {} \;
+        pytest
